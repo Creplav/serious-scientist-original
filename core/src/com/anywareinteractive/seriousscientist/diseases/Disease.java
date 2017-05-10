@@ -43,7 +43,7 @@ public abstract class Disease {
     /**
      * Area around the person that will be effected by a patience reduction
      */
-    protected final float patienceArea = (float)(2.0 * 3.1415 * patienceReductionRadius);
+    protected final float patienceArea = (2.0f * 3.1415f * patienceReductionRadius);
     /**
      * Defines whether or not the disease is infectious.
      */
