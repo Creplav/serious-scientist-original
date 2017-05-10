@@ -3,7 +3,7 @@ package com.anywareinteractive.seriousscientist.cures;
 /**
  * Created by Ben on 5/10/17.
  */
-public abstract class Cure implements IBreakable{
+public abstract class Cure implements IBreakable {
     protected int cost = 0;
     protected int price = 0;
     protected int seriousnessInfection = 0;
