@@ -11,4 +11,9 @@ public abstract class Cure {
     protected int researchTime = 0;
     protected String description = "No Description";
     protected String name = "No Name";
+
+    public Cure createCure(Cure cure){
+        //Set up a timer for cure creation.
+        return cure;
+    }
 }
