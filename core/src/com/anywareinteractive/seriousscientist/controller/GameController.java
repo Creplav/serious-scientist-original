@@ -1,7 +1,6 @@
 package com.anywareinteractive.seriousscientist.controller;
 
 import com.anywareinteractive.seriousscientist.people.Scientist;
-
 import java.util.ArrayList;
 
 /**
@@ -20,29 +19,36 @@ public class GameController {
      * Creating float values because they only use 4 bytes of memory compared to 8 for a double.
      * Also because of integer limits to 2.15 billion (approximate)
      */
-    public float worldPopulation = 7500000000.00f; //Using current world population. (rounded down for simplicity)
-    public float sickPopulation = 0.0f;
-    public float seriousPopulation = 0.0f;
+    public float worldPopulation = 7500000000f; //Using current world population. (rounded down for simplicity)
+    public float sickPopulation = 0f;
+    public float seriousPopulation = 0f;
 
     //========
     // Money
     //=======
     /*
      * Would use an integer here. However, integers can only go up to 2,147,483,647.
-     * Money can go a lot higher than that so we will use a float.
+     * Money can go a lot higher than that so we will use a long.
+     * At first I decided on a float. But then I found out that there is an issue with the IEEE standard for
+     * floats and handling money.
      * Starting off with $1000
      */
-    public float money = 1000.0f;
+    public long money = 1000;
 
     //=======
     // Scientists
     //=======
-    public float scientistCost = 10000f;
+    public long scientistCost = 10000;
     public float scientistPopulationRequirement = 20000f;
-    public int scientistTrainingTime = 5; // In minutes
+    /*
+     * Using a short because it goes to 32,767 and that would equal about 45 days which is plenty of time.
+     * The short data type is only 2 bytes compared to the four of an integer.
+     */
+    public short scientistTrainingTime = 5; // In minutes
 
     public ArrayList<Scientist> scientists = new ArrayList<Scientist>();
 
+    public Scientist mainScientist = null;
 
 
     //*********************
@@ -50,7 +56,8 @@ public class GameController {
     //*********************
 
     public GameController(String scientistName){
-        Scientist scientist = new Scientist(scientistName);
+        Scientist scientist = new Scientist(scientistName, this);
+        mainScientist = scientist;
         scientists.add(scientist);
     }
 
@@ -88,12 +95,12 @@ public class GameController {
                 System.out.println("Main thread was interrupted.");
             }
 
-            Scientist scientist = new Scientist("Bob");
+            Scientist scientist = new Scientist("Bob", this);
             scientists.add(scientist);
             // Absolutely no reason for these numbers. Just picked them.
             scientistCost *= 3.14;
             scientistPopulationRequirement *= 2.3;
-            scientistTrainingTime = (scientists.size() * scientistTrainingTime * 2);
+            scientistTrainingTime = (short)(scientists.size() * scientistTrainingTime * 2);
         }
     }
 }
@@ -133,14 +140,26 @@ class TrainingTimer extends Thread {
 /**
  * To test functionality of the game thus far.
  */
-class Test {
+class GameTests {
     public static void main(String[] args) {
+
+    }
+    public boolean scientistTest(){
         GameController gameController = new GameController("Tim");
         System.out.println("Current scientists: " + gameController.scientists.size());
         gameController.purchaseScientist();
         gameController.money += 1000000.00f;
         gameController.seriousPopulation += 10000000.00f;
         gameController.purchaseScientist();
+        System.out.println("Current Scientists: " + gameController.scientists.size());
+        if(gameController.scientists.size() == 2) return true;
+        else return false;
+    }
+
+    public boolean researchTest(){
+        GameController gameController = new GameController("Mark");
+        return false;
     }
 }
+
 

@@ -9,12 +9,12 @@ import com.anywareinteractive.seriousscientist.diseases.Disease;
  * It allows people to get sick and be given a name and disease.
  */
 public abstract class Person implements ISickable {
-    protected String name = "No name";
+    public String name = "No name";
     /**
      * The patience the person currently has.
      */
-    protected int patience = 100;
-    protected Disease disease = null;
+    public int patience = 100;
+    public Disease disease = null;
 
     @Override
     public Disease getSick() {
