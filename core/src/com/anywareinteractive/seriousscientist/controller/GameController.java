@@ -1,7 +1,11 @@
 package com.anywareinteractive.seriousscientist.controller;
 
 import com.anywareinteractive.seriousscientist.people.Scientist;
+import com.badlogic.gdx.Game;
+
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * This class is for a good portion of the game logic. It will hold all of the important stuff like money and population.
@@ -44,6 +48,7 @@ public class GameController {
      * Using a short because it goes to 32,767 and that would equal about 45 days which is plenty of time.
      * The short data type is only 2 bytes compared to the four of an integer.
      */
+    //TODO Decide on a better way to handle time
     public short scientistTrainingTime = 5; // In minutes
 
     public ArrayList<Scientist> scientists = new ArrayList<Scientist>();
@@ -69,47 +74,90 @@ public class GameController {
      * This method purchases a new scientist
      * @return
      */
-    public void purchaseScientist(){
+    public void purchaseScientist(final GameController gameController) {
         // Make sure the player has met the requirements
-        if(money < scientistCost){
+        if (money < scientistCost) {
             System.out.println("You do not have enough money to purchase the scientist.");
             System.out.println(String.format("You need %s more money", scientistCost - money));
-        }
-        else if(seriousPopulation < scientistPopulationRequirement){
+        } else if (seriousPopulation < scientistPopulationRequirement) {
             System.out.println("You do not have the required serious population to purchase the scientist.");
             System.out.println(String.format("You need %s more people", scientistPopulationRequirement - seriousPopulation));
         }
         // They've got it! Let them purchase one.
         else {
             money -= scientistCost;
-            //TODO Create a new thread here and make it wait until the time is complete for training.
-            TrainingTimer trainingTimer = new TrainingTimer("Training Timer 1", this.scientistTrainingTime);
-            trainingTimer.run();
-            try {
-                while(trainingTimer.isAlive()){
-                    System.out.println("Waiting for thread to finish...");
-                    Thread.sleep(1000);
+            final Thread trainingThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        System.out.println("Training Scientist...");
+                        /*
+                         * Setting the sleep time to 5 seconds
+                         */
+                        final long sleepTime = 5000;
+                        //Creating a new thread to use as a count down timer
+                        final Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    //Create a time remaining so that we can view how many seconds are left
+                                    long timeRemaining = sleepTime / 1000;
+                                    //Print out the initial remaining time
+                                    System.out.println("Time Remaining: " + timeRemaining);
+                                    //Print out the remaining time every second until it reaches 0
+                                    while (timeRemaining != 0) {
+                                        Thread.sleep(1000);
+                                        timeRemaining--;
+                                        System.out.println("Time Remaining: " + timeRemaining);
+                                    }
+                                    //Notify that the thread has finished and interrupt the thread to exit it.
+                                    System.out.println("Thread finished.");
+                                    throw new InterruptedException();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        //Starting the timer thread
+                        thread.start();
+                        //Sleeping the current thread until the time is up.
+                        Thread.sleep(sleepTime);
+                        //Report that the thread has finished
+                        System.out.println("DONE!");
+                        System.out.println("Thread Finished");
+                        //Throw an interruption to stop the thread
+                        throw new InterruptedException();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+            });
+            //Start the training thread
+            trainingThread.start();
+            //Yield until the training thread has stopped.
+            while(trainingThread.isAlive()){
+                Thread.yield();
             }
-            catch(InterruptedException e){
-                System.out.println("Main thread was interrupted.");
-            }
-
-            Scientist scientist = new Scientist("Bob", this);
+            //Create a new scanner for input
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Please enter a name for this scientist: ");
+            final String scientistName = scanner.next();
+            //Create a new scientist and add it to the list of current scientists.
+            Scientist scientist = new Scientist(scientistName, gameController);
             scientists.add(scientist);
             // Absolutely no reason for these numbers. Just picked them.
             scientistCost *= 3.14;
             scientistPopulationRequirement *= 2.3;
-            scientistTrainingTime = (short)(scientists.size() * scientistTrainingTime * 2);
+            scientistTrainingTime = (short) (scientists.size() * scientistTrainingTime * 2);
         }
     }
 }
 
 /**
  * This is a class for creating a training timer for new scientists.
+ * (MAYBE OBSOLETE NOW)
  */
 class TrainingTimer extends Thread {
-
     int executionTime;
     String threadName;
 
@@ -132,7 +180,6 @@ class TrainingTimer extends Thread {
         catch(InterruptedException e){
             System.out.println("Warning! " + this.threadName + " was interrupted!");
         }
-
         System.out.println(this.threadName + " has stopped.");
     }
 }
@@ -142,24 +189,24 @@ class TrainingTimer extends Thread {
  */
 class GameTests {
     public static void main(String[] args) {
-
+        if (scientistQuantityTest()) System.out.println("Scientist Quantity Test Passed");
+        else System.out.println("Scientist Quantity Test passed");
     }
-    public boolean scientistTest(){
+
+    public static boolean scientistQuantityTest() {
         GameController gameController = new GameController("Tim");
         System.out.println("Current scientists: " + gameController.scientists.size());
-        gameController.purchaseScientist();
+        gameController.purchaseScientist(gameController);
         gameController.money += 1000000.00f;
         gameController.seriousPopulation += 10000000.00f;
-        gameController.purchaseScientist();
+        gameController.purchaseScientist(gameController);
         System.out.println("Current Scientists: " + gameController.scientists.size());
-        if(gameController.scientists.size() == 2) return true;
+        if (gameController.scientists.size() == 2) return true;
         else return false;
     }
 
-    public boolean researchTest(){
+    public static boolean researchTest() {
         GameController gameController = new GameController("Mark");
         return false;
     }
 }
-
-
